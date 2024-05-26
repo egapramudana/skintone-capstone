@@ -22,4 +22,4 @@ async function storeData(id, data) {
   return predictCollection.doc(id).set(documentData);
 }
 
-module.exports = storeData;
+module.exports = { storeData, firestore };

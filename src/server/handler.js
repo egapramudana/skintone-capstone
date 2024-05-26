@@ -1,19 +1,20 @@
-const predictClassification = require('../services/inferenceService');
+const { detectSkinTone, getSuggestions } = require('../services/inferenceService');
 const crypto = require('crypto');
-const storeData = require('../services/storeData');
+const { storeData } = require('../services/storeData');
 
 async function postPredictHandler(request, h) {
   const { image } = request.payload;
   const { model } = request.server.app;
 
-  const { confidenceScore, result, explanation, suggestion } = await predictClassification(model, image);
+  const { confidenceScore, skinTone } = await detectSkinTone(model, image);
+  const suggestions = getSuggestions(skinTone);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
 
   const data = {
     id,
-    result,
-    suggestion,
+    skinTone,
+    suggestions,
     createdAt
   };
 
@@ -28,4 +29,20 @@ async function postPredictHandler(request, h) {
   return response;
 }
 
-module.exports = postPredictHandler;
+async function getHistories(request, h) {
+  const { firestore } = request.server.app;
+  const predictCollection = firestore.collection('predictions');
+
+  try {
+    const snapshot = await predictCollection.get();
+    const histories = snapshot.docs.map(doc => ({
+      id: doc.id,
+      data: doc.data()
+    }));
+    return h.response({ status: 'success', data: histories }).code(200);
+  } catch (error) {
+    return h.response({ status: 'fail', message: error.message }).code(500);
+  }
+}
+
+module.exports = { postPredictHandler, getHistories };

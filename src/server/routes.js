@@ -1,15 +1,13 @@
 const { detectSkinTone, getSuggestions } = require('./src/services/inferenceService');
-const { getHistories } = require('./src/server/historyService');
-const { firestore } = require('./src/services/storeData');
+const { storeData, firestore } = require('./src/services/storeData');
+const { postPredictHandler, getHistories } = require('./src/server/handler');
 
 const routes = [
   // Endpoint for predicting skin tone and foundation suggestion
   {
     method: 'POST',
     path: '/api/predict',
-    handler: async (request, h) => {
-      // Implementation remains the same
-    },
+    handler: postPredictHandler,
     options: {
       payload: {
         allow: 'multipart/form-data',
@@ -21,9 +19,7 @@ const routes = [
   {
     method: 'GET',
     path: '/api/predict/histories',
-    handler: async (request, h) => {
-      // Implementation remains the same
-    }
+    handler: getHistories
   },
   // Endpoint for getting all foundation shades
   {
